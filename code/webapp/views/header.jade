@@ -1,0 +1,22 @@
+div.navbar.navbar-inverse.navbar-fixed-top
+	div.navbar-inner
+		div.container-fluid
+			div.row-fluid
+				.span6.offset1
+					a.btn.btn-navbar(data-toggle="collapse", data-target=".nav-collapse")
+						span.icon-bar
+						span.icon-bar
+						span.icon-bar
+					a.brand(href="/")
+						| Pennterest
+					div.nav-collapse.collapse
+						ul.nav
+							li.active
+								a(href="http://54.211.149.158/logout") Logout
+
+				.span4
+					.span8
+						.navbar-form.navbar-right(id='search_form', role='search')
+							.form-group
+								input.form-control.span9(id='search_field', type='text', placeholder='Search', autosearch="true")
+	

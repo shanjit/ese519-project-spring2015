@@ -1,0 +1,42 @@
+extends layout
+
+block content
+	.row-fluid.well
+		.span7
+			p(id="guide") #{roomid} Room
+
+		.span5
+			.span6
+				#connect
+					.btn.btn-primary(data-intro="Start Chat" data-position="left") Connect
+			.span6
+				#endchat
+					.btn.btn-primary(data-intro="End Chat" data-position="bottom") End Chat
+
+
+	.row-fluid
+		.span12.well(style='height: 70vh;')
+			.span6
+				video(style='-webkit-transform: scaleX(-1);-moz-transform: scaleX(-1); -ms-transform:  scaleX(-1); -o-transform:  scaleX(-1); transform: scaleX(-1);height: 65vh;', id="localVideo" autoplay)
+			.span6
+				video(style='margin: 0 0.5em 1.5em 0;-webkit-transform: scaleX(-1);-moz-transform: scaleX(-1); -ms-transform:  scaleX(-1); -o-transform:  scaleX(-1); transform: scaleX(-1);height: 65vh;', id="remoteVideo" autoplay)
+		
+	#myModal.modal.hide.fade(tabindex='-1', role='dialog', aria-labelledby='myModalLabel', aria-hidden='true')
+		.modal-header
+			button.close(type='button', data-dismiss='modal', aria-hidden='true') ×
+			h3#myModalLabel Modal header
+		.modal-body
+			p One fine body…
+		.modal-footer
+			button.btn(data-dismiss='modal', aria-hidden='true') Close
+			button.btn.btn-primary Save changes
+
+		script(type='text/javascript', src='/js/chardinjs.min.js', charset='utf-8')
+		link(rel="stylesheet", type="text/css", href="/stylesheets/chardinjs.css")
+		script(type='text/javascript', src='/js/humane.min.js')
+		link(rel="stylesheet", type="text/css", href="/stylesheets/flatty.css")
+	
+	hr(style='margin: 30px 0 10px 0;')
+	div.row-fluid
+		.span12.footer.pull-left(align="center")
+			a(id="foot" href="http://www.shanjitsingh.in" target="_blank") Made with <3 by Shanjit Singh Jajmann.

@@ -1,0 +1,6 @@
+#!/bin/bash
+# for deploying on AWS
+# Invoke the Forever module (to STOP our Node.js server).
+sudo forever start ./bin/www
+
+
