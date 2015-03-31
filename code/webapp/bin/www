@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-var debug = require('debug')('hackgecko');
+var debug = require('debug')('brainwav');
 var app = require('../app');
 
 // Be sure to change the port number to 80 when deploying to AWS
