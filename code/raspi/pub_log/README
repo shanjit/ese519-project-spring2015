@@ -5,6 +5,9 @@ There are various ways to do this,
 	- open the test.html page on the client side
         - Good for visualizing the data
 	
+	![alt tag](https://www.dropbox.com/s/6ljvejsz6k5a8ha/abc.jpg)
+	
+	
 2. Write a simple tcp client and server implementation
 	- Very simple python server client implementation something like http://pymotw.com/2/socket/tcp.html
 
