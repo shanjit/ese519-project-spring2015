@@ -2,6 +2,8 @@
 
 #include "bcm2835.h"
 #include <stdint.h>
+#include "definitions.h"
+#include <stdio.h>
 
 int initLibrary()
 {
@@ -39,7 +41,7 @@ int initLibrary()
 	//	BCM2835_SPI_CLOCK_DIVIDER_4     = 4,       ///< 4 = 16ns = 62.5MHz
 	//	BCM2835_SPI_CLOCK_DIVIDER_2     = 2,       ///< 2 = 8ns = 125MHz, fastest you can get
 	//	BCM2835_SPI_CLOCK_DIVIDER_1     = 1,       ///< 1 = 262.144us = 3.814697260kHz, same as 0/65536
-    bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_65536); // The default
+    bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_256); // The default
 
     // Chip select
     bcm2835_spi_chipSelect(BCM2835_SPI_CS0);                      // The default
@@ -48,6 +50,9 @@ int initLibrary()
     // LOW or HIGH
     bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS0, LOW);      // the default
 
+    // Set the pin_DRDY to be the input 
+    bcm2835_gpio_fsel(PIN_DRDY, BCM2835_GPIO_FSEL_INPT);
+
 
     // Remember to use the bcm2835_spi_end() function to change pins to their default state
 	return 0;
@@ -55,8 +60,38 @@ int initLibrary()
 
 
 uint8_t transferData(uint8_t data)
+{	
+	printf("MOSI: %02x \n", data);
+	uint8_t recv = bcm2835_spi_transfer(data);
+	printf("MISO: %02x \n", recv);
+	
+	return (recv);	
+}
+
+void reset()
 {
-	return (bcm2835_spi_transfer(data));	
+	transferData(_RESET);
+
+	// Wait for 10 nS
+	bcm2835_delayMicroseconds(1000000);
+}
+
+uint8_t getDeviceId()
+{
+	uint8_t DeviceId = 0xff;
+
+	transferData(_SDATAC);
+
+
+	transferData(_RREG);
+	transferData(0x00);
+
+
+	DeviceId = transferData(0x00);
+
+	transferData(_RDATAC);
+
+	return DeviceId;
 }
 
 void transferComplete()
