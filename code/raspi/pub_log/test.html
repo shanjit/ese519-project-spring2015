@@ -5,10 +5,10 @@
 <body>
 
 <!--Create space to print values -->
-<div style="border:1px solid #ccc center" id="number">&nbsp;</div>
+<H1 align="center" style="border:1px solid #ccc font-size:30px" id="number">&nbsp;</H1>
 
 <!-- Create canvas to show the values in realtime -->
-<canvas id="mycanvas" width="683" height="384"></canvas>
+<canvas id="mycanvas" width="1300" height="550"></canvas>
 
 <!-- Get data from the socket and show the values in realtime -->
 <script type="text/javascript">
@@ -28,7 +28,7 @@ socket.on('stream', function (data) {
 	line1.append(new Date().getTime(), data.n);
 	
 	<!-- Publish data to the number id element -->	
-    document.getElementById('number').innerHTML=data.n;
+    document.getElementById('number').innerHTML='Data point value: ' + data.n;
   });
 
 
