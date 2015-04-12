@@ -5,11 +5,10 @@
 % biological signals were recorded. An SVM classifier is suggested for use
 % in this.
 
-%IMPORTANT: DATA FORMAT!!!!!!
- %Each row in the data.csv files corrosponds to the trial. So in order to
- %get it into the right format you must extract that row then reshape it.
- %We may need to write a script to reshape these .csv files in order to
- %accomodate this.
+%%
+% v2 uses spectrogram vs bandpower to get spectral information. The
+% difference is that bandpower returns a scalar value while spectrogram
+% returns a qualitative number. 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -20,7 +19,12 @@
 %   is to find what features will be most valuable to extract for the
 %   model. Features implemetned are from IEEE paper from singapor
 %   university
-% TO DO:   Implement Combination features (spectral features specifically)
+% TO DO:   
+% ---run through all participants and caluculate the average corrolation
+% for each feature. Then plot in colormap to see the result. Also find the
+% average mean and std for each feature to plot in an error 
+%
+% ----Implement Combination features (spectral features specifically)
 % & possibly fractal features if you can figure out how to do it in a way
 % that is transferable easily to python.
 
@@ -75,7 +79,7 @@ fRange = [alpha beta gamma theta delta];
 
 songLen = 8064;
 
-data = load('s01Datav2.csv');
+data = load('s03Datav2.csv');
 
 %file formated super weird.... you have to do this in order to format it
 %correctly
@@ -92,78 +96,8 @@ NumWins = @(xLen,fs,winLen,winDisp) round((xLen-(winLen - winDisp)*fs)/(winDisp*
 windows = NumWins(length(x), fs, winLen, winDisp);
 dispSamp = winDisp*fs;  %Disp in terms of samples
 
-
 %%
-% Feature Extraction method 1.
-%initialize of array
-% Win = zeros(winLen*fs,windows)';
-% alphaP =  zeros(length(ch),windows); %compute featFn for each window
-% betaP =   zeros(length(ch),windows);
-% gammaP =  zeros(length(ch),windows);
-% thetaP =  zeros(length(ch),windows);
-% % deltaP =  zeros(length(ch),windows);
-% 
-% %
-% chAvg =  zeros(length(ch),windows);
-% chDev =  zeros(length(ch),windows);
-% totAvg = zeros(windows,1);
-% totDev = zeros(windows,1);
-%reshape matrix into rows of windows and calc. feature for each row 
-
-%Calculate moving window features 
-% for i=1:windows
-%     %Do this for each channel
-%     for j = 1:size(x,1)
-%         %Get current window 
-%         Win(i,:) = x(j,(i-1)*dispSamp + 1:(i-1)*dispSamp + winLen*fs);
-%         %%%%%%%%%%Time based features%%%%%%%%%%%%%%%%%%%%%
-%         chAvg(j,i) = mean(Win(i,:));
-%         chDev(j,i) = std(Win(i,:));
-% %         %%%%%%%%%%%spectral features%%%%%%%%%%%%
-% %         alphaP(j,i) = bandpower(Win(i,:),fs,alpha);
-% %         betaP(j,i) = bandpower(Win(i,:),fs,beta);
-% %         gammaP(j,i) = bandpower(Win(i,:),fs,gamma); 
-% %         thetaP(j,i) = bandpower(Win(i,:),fs,theta); 
-% %       deltaP(j,i) = bandpower(Win(i,:),fs,delta);  %This is really filtered out
-%     end
-% %%%%%%%%%%%%%%%Computed combination features%%%%%%%%%%%%%%%
-%     totAvg(i) = mean(chAvg(:,i),1);
-%     totDev(i) = std(chDev(:,i),1);
-% end
-
-%Create Feature matrix:
-
-%features to be extracted from each channel
-%all
-% fv1 = [alphaP(1,:)' betaP(1,:)' gammaP(1,:)' thetaP(1,:)'];
-% fv2 = [alphaP(2,:)' betaP(2,:)' gammaP(2,:)' thetaP(2,:)'];
-% fv3 = [alphaP(3,:)' betaP(3,:)' gammaP(3,:)' thetaP(3,:)'];
-% fv4 = [alphaP(4,:)' betaP(4,:)' gammaP(4,:)' thetaP(4,:)'];
-% fv5 = [alphaP(5,:)' betaP(5,:)' gammaP(5,:)' thetaP(5,:)'];
-% fv6 = [alphaP(6,:)' betaP(6,:)' gammaP(6,:)' thetaP(6,:)'];
-% fv7 = [alphaP(7,:)' betaP(7,:)' gammaP(7,:)' thetaP(7,:)'];
-% fv8 = [alphaP(8,:)' betaP(8,:)' gammaP(8,:)' thetaP(8,:)'];
-% fvComb1 = [totAvg totDev];
-
-% %selected
-% fv1 = [betaP(1,:)'  ];
-% fv2 = [betaP(2,:)' alphaP(2,:)'];
-% fv3 = [betaP(3,:)'];
-% fv4 = [betaP(4,:)' alphaP(4,:)'];
-% fv5 = [thetaP(5,:)' gammaP(5,:)'];
-% fv6 = [thetaP(6,:)' gammaP(6,:)'];
-% fv7 = [alphaP(7,:)' gammaP(7,:)'];
-% fv8 = [alphaP(8,:)' gammaP(8,:)'];
-% fvComb1 = [totAvg totDev];
-
-
-%Final feature matrix
-% FV = [fv1 fv2 fv3 fv4 fv5 fv6 fv7 fv8];
-% FV = [fv1 fv2 fv3 fv4];
-
-
-%%
-% Feature extraction 2.
+% Feature extraction 
 % BETTER WAY using spectrogram vs band power
 %test
 % [chSpect, freqBins] = spectrogram(x(2,:),winLen,winLen-winDisp,1024,fs);
@@ -190,12 +124,13 @@ timeavg_bin = C(1:(winDisp)*fs:end)';
 F = [F freqFeats' timeavg_bin];
 
 fprintf('%d',i)   
-    
-    
+        
 end
 
+
 % Create Labels
-lab = load('s01Labels.csv');
+lab = load('s03Labels.csv');
+
 
 vaLab = lab(:,1:2);
 %normalize scale to be centered around 0;
@@ -206,34 +141,66 @@ vaLab2(:,1) = reshape(repmat(vaLab(1,:),numInterp,1),length(vaLab(1,:))*numInter
 vaLab2(:,2) = reshape(repmat(vaLab(2,:),numInterp,1),length(vaLab(2,:))*numInterp,1);
 
 %%
-%NORMALIZE
-featAV  = mean(FV,1);
-featSTD = std(FV,1);
+% We actually don't want to normalize because we want to find the
+% difference between baseline and non baseline
+% %NORMALIZE
+featAV  = mean(F,1);
+featSTD = std(F,1);
 figure(1)
 errorbar(featAV,featSTD)
 
-
 for i = 1:size(featAV,2)
-    FV(:,i) = (FV(:,i) - featAV(i)) ./featSTD(i);
+    F(:,i) = (F(:,i) - featAV(i)) ./featSTD(i);
 end
 
-R = [ones(size(fv1,1),1) FV];
 
+%find feature corr and plot in meaningful way
+featCor = corr(F,vaLab2(1:size(F,1),:));
+
+valCor = featCor(:,1);
+valCor = reshape(valCor,length(ch),size(F,2)/length(ch));
+figure(33)
+imagesc(valCor);
+colorbar;
+xlabel('Feat')
+ylabel('Channel')
+
+arCor = featCor(:,2);
+arCor = reshape(arCor,length(ch),size(F,2)/length(ch));
+figure(34)
+imagesc(arCor);
+colorbar;
+xlabel('Feat')
+ylabel('Channel')
+
+
+%Reshape feature into two matrices: Baseline - Target (last 30s of clip)
+%BASELINE
+%get the average features for the first 3 seconds of each clip (baseline)
+% baseF = mean(F(mod(1:size(F,1),63)<=4&mod(1:size(F,1),63)>0,:),1);
+
+%TARGET STIM TIME
+% stimF = F(mod(1:size(F,1),63)>=33,:);
+
+%normalize so that basline eeg components is removed from stim
+% for i = 1:length(baseF)
+% stimF(:,i) = stimF(:,i) - baseF(i);
+% end
+
+%For possible regression model
+R = [ones(size(F,1),1) F];
 
 %assign test and train set
 train = 1:(63*25);
 test =  (train(end)+1):train(end)+63*14;
 
-rTrain = FV(train,:);
-rTest = FV(test,:);
+fTrain = F(train,:);
+fTest = F(test,:);
 
 vaTrain = vaLab2(train,:);
 vaTest =  vaLab2(test,:);
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%% CLASSIFY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%
-%SVM model for class
+ 
 
 
 %%
@@ -259,7 +226,7 @@ emotTest = emot(test);
 
 
 %do pca anlysis
-[coef, score, latent] = pca(rTrain);
+[coef, score, latent] = pca(fTrain);
 
 %use top two principal components
 pcOne = score(:,1);
@@ -291,9 +258,9 @@ explVar = sum(latent(1:2))/sum(latent(:))
 
 %K-nn classify
 
-kTr = knnclassify(rTrain,rTrain,emotTr,4);
+kTr = knnclassify(fTrain,fTrain,emotTr,4);
 
-kTest = knnclassify(rTest,rTrain,emotTr,4);
+kTest = knnclassify(fTest,fTrain,emotTr,4);
 
 %calculate Training error
 error = sum(kTr ~= emotTr);
@@ -302,7 +269,7 @@ trainErrorKnn = (error/length(emotTr))*100
 
 %calculate Training error
 error = sum(kTest ~= emotTest);
-trainErrorKnn = (error/length(emotTest))*100
+testErrorKnn = (error/length(emotTest))*100
 %Train Error 0 percent
 
 
@@ -311,13 +278,13 @@ trainErrorKnn = (error/length(emotTest))*100
 %%
 %%%Regression I don't think this is a good idea
 %%%%%%%%%%%%%%%%%%%%%%%%%%%  TRAIN MODEL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-w = mldivide((rTrain'*rTrain),(rTrain'*vaTrain));
-
-
-%predict
-
-u = rTrain*w;
+% 
+% w = mldivide((rTrain'*rTrain),(rTrain'*vaTrain));
+% 
+% 
+% %predict
+% 
+% u = rTrain*w;
 
 
 
