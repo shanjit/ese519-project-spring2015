@@ -18,3 +18,8 @@ Trial:
 Feature Vector:
 	The following 8 features are extracted for each of the 8 channels:
 		- <Feature List with Description>
+
+Target Labels:
+	Each Feature Vector corresponds to 2 continuous target variables: Arousal and Valence
+	In a 2D plane, an ordered pair of (Arousal,Valence) map to an 'emotion' quadrant.
+
