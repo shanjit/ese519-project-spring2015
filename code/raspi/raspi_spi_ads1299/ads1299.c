@@ -1,3 +1,7 @@
+// ads1299.c
+// ADS1299 library
+// Product Page - http://www.ti.com/product/ads1299
+// Datasheet - http://www.ti.com/lit/ds/symlink/ads1299.pdf
 
 
 #include "bcm2835.h"
@@ -5,10 +9,14 @@
 #include "definitions.h"
 #include <stdio.h>
 
+// function call to set up all the communication between the raspberry pi bplus and the ADS1299 development board.
+// input: none
+// returns: 0 if everything inorder, else error code
+// note: make sure spi settings are the same
 int initLibrary()
 {
 	if (!bcm2835_init())
-	return 24;
+		return 24;
 
 	// Begin spi by initializing all the required pins
 	bcm2835_spi_begin();
@@ -21,7 +29,7 @@ int initLibrary()
 	//	BCM2835_SPI_MODE1 = 1,  // CPOL = 0, CPHA = 1, Clock idle low, data is clocked in on falling edge, output data (change) on rising edge
 	//	BCM2835_SPI_MODE2 = 2,  // CPOL = 1, CPHA = 0, Clock idle high, data is clocked in on falling edge, output data (change) on rising edge
 	//	BCM2835_SPI_MODE3 = 3,  // CPOL = 1, CPHA = 1, Clock idle high, data is clocked in on rising, edge output data (change) on falling edge
-    bcm2835_spi_setDataMode(BCM2835_SPI_MODE0);                   // The default
+    bcm2835_spi_setDataMode(BCM2835_SPI_MODE1);                   // The default
     
 	//Set SPI clock speed
 	//	BCM2835_SPI_CLOCK_DIVIDER_65536 = 0,       ///< 65536 = 262.144us = 3.814697260kHz (total H+L clock period) 
@@ -41,59 +49,159 @@ int initLibrary()
 	//	BCM2835_SPI_CLOCK_DIVIDER_4     = 4,       ///< 4 = 16ns = 62.5MHz
 	//	BCM2835_SPI_CLOCK_DIVIDER_2     = 2,       ///< 2 = 8ns = 125MHz, fastest you can get
 	//	BCM2835_SPI_CLOCK_DIVIDER_1     = 1,       ///< 1 = 262.144us = 3.814697260kHz, same as 0/65536
-    bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_256); // The default
+    bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_512); // The default
 
     // Chip select
-    bcm2835_spi_chipSelect(BCM2835_SPI_CS0);                      // The default
+    bcm2835_spi_chipSelect(BCM2835_SPI_CS0);
     
     // Select the polarity
     // LOW or HIGH
-    bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS0, LOW);      // the default
+    bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS0, HIGH);
 
     // Set the pin_DRDY to be the input 
     bcm2835_gpio_fsel(PIN_DRDY, BCM2835_GPIO_FSEL_INPT);
 
+    // Set the ss pin to output
+    bcm2835_gpio_fsel(PIN_CS, BCM2835_GPIO_FSEL_OUTP);
+    
+    // Set the ss pin to be high by default
+    bcm2835_gpio_write(PIN_CS, HIGH);
 
-    // Remember to use the bcm2835_spi_end() function to change pins to their default state
+	// --- RESET THE ADS1299 --- //
+	// Issue the ss pulse
+	// bcm2835_gpio_write(PIN_CS, LOW);
+    // wait for a minimum of 2*TCLK    
+    // bcm2835_delayMicroseconds(3*TCLK);
+	// Make ss go high again
+	// NOTE : Use the reset opcode (0x60) instead
+
+    bcm2835_gpio_write(PIN_CS, LOW);
+	bcm2835_delayMicroseconds(1000);
+
+	// reset opcode sent
+	transferData(0x60);
+    
+    // wait for min 18*TCLK for reset
+	bcm2835_delayMicroseconds(20*TCLK);
+
 	return 0;
 }
 
-
+// function to send/receive data after initialization
+// input: data to be sent on MOSI line
+// returns: data on MISO line
+// note: prints mosi, miso when DEBUG 1
 uint8_t transferData(uint8_t data)
 {	
-	printf("MOSI: %02x \n", data);
+	if DEBUG
+		printf("MOSI: %02x \n", data);
+
 	uint8_t recv = bcm2835_spi_transfer(data);
-	printf("MISO: %02x \n", recv);
-	
+
+	if DEBUG
+		printf("MISO: %02x \n", recv);
+
 	return (recv);	
 }
 
+// function to reset the ads1299
+// input: none
+// return: none
 void reset()
 {
-	transferData(_RESET);
 
-	// Wait for 10 nS
-	bcm2835_delayMicroseconds(1000000);
+
 }
 
+// function to get the device id of ads1299
+// input: none
+// return: device id in hex
+// note: the device id should be 0x3e
 uint8_t getDeviceId()
 {
-	uint8_t DeviceId = 0xff;
+	uint8_t deviceid;
 
+	// Calling _SDATAC for stopping continuous data mode
 	transferData(_SDATAC);
 
+	// Always wait for 4*TCLK after after _SDATAC passed
+	bcm2835_delayMicroseconds(4*TCLK);
 
+	// Calling _RREG for initializing read of registers
 	transferData(_RREG);
+
+	// Number of registers to be read 1
 	transferData(0x00);
 
+	// push in dummy bit to get device id
+	deviceid = transferData(0x00);
 
-	DeviceId = transferData(0x00);
+	// restart the _RDATAC mode
+	// transferData(_RDATAC);
 
-	transferData(_RDATAC);
-
-	return DeviceId;
+	return deviceid;
 }
 
+// function to directly read/write to a register 
+// input: to read/write, register address, register value to write
+// output: the read data in case of read and 0x00 in case of a write
+uint8_t rregTransferData(int readorwrite, uint8_t rregadd, uint8_t rregvalue)
+{
+	uint8_t data;
+
+	// read is 1, write is 0
+	if (readorwrite)
+		data = 0x20;
+	else
+		data = 0x40
+
+	data = data + rregadd;
+
+	transferData(data);
+	transferData(0x00);
+
+	if (readorwrite)
+		data = transferData(0x00);
+	else
+		transferData(rregvalue);
+
+	return data
+}
+
+
+// function to directly read/write to a register 
+// input: to read/write, register address, register value to write
+// output: the read data in case of read and 0x00 in case of a write
+uint8_t rregTransferData(int readorwrite, uint8_t rregadd, uint8_t rregvalue)
+{
+	uint8_t data;
+
+	// read is 1, write is 0
+	if (readorwrite)
+		data = 0x20;
+	else
+		data = 0x40
+
+	data = data + rregadd;
+
+	transferData(data);
+	transferData(0x00);
+
+	if (readorwrite)
+		data = transferData(0x00);
+	else
+		transferData(rregvalue);
+
+	return data
+}
+
+
+
+
+
+
+
+}
 void transferComplete()
 {
 	bcm2835_spi_end();

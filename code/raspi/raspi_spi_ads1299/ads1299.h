@@ -1,4 +1,7 @@
-// #ifdef 
+//ads1299.h
+
+#ifndef _ADS1299_h
+#define _ADS1299_h
 
 #include <stdint.h>
 
@@ -14,4 +17,4 @@ uint8_t getDeviceId();
 // uint8_t transfernData(uint8_t);
 
 
-// #endif
+#endif

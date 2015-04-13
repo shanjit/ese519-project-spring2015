@@ -8,6 +8,26 @@
 // $Id: bcm2835.c,v 1.22 2015/03/28 05:27:32 mikem Exp mikem $
 */
 
+/*
+
+    blinky code - use for debug later
+
+    // Set the pin to be an output
+    bcm2835_gpio_fsel(PIN_DRDY, BCM2835_GPIO_FSEL_OUTP);
+
+    // Turn it on
+    bcm2835_gpio_write(PIN, HIGH);
+        
+    // wait a bit
+    bcm2835_delay(500);
+        
+    // turn it off
+    bcm2835_gpio_write(PIN, LOW);
+        
+    // wait a bit
+    bcm2835_delay(500);
+    
+*/
 
 #include <stdlib.h>
 #include <stdio.h>
