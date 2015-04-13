@@ -20,6 +20,8 @@
 %   model. Features implemetned are from IEEE paper from singapor
 %   university
 % TO DO:   
+
+% USING EXTERNAL SCRIPT FOR THIS NOW
 % ---run through all participants and caluculate the average corrolation
 % for each feature. Then plot in colormap to see the result. Also find the
 % average mean and std for each feature to plot in an error 
@@ -79,6 +81,8 @@ fRange = [alpha beta gamma theta delta];
 
 songLen = 8064;
 
+
+    
 data = load('s03Datav2.csv');
 
 %file formated super weird.... you have to do this in order to format it
