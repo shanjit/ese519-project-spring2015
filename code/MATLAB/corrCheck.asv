@@ -1,3 +1,4 @@
+
 % This script uses the the DEAP data set to create a emotion classifier.
 % this data set consists of experiments where various music videos were
 % shown to users to evoke a particular emotion and EEG along with other
@@ -116,12 +117,13 @@ for pt = 1:32
     % [chSpect, freqBins] = spectrogram(x(2,:),winLen,winLen-winDisp,1024,fs);
 
     F = [];
-    asymFeats = zeros(windows,(size(freqBands,1)*3)+6);
+    asymFeats = zeros(windows,(size(freqBands,1)*3)+3);
 
     for i = 1:length(ch)
         %%%%%Another Way to do this ^%%%%
         %Spectral Features
         [chSpect, freqBins] = spectrogram(x(i,:),winLen*fs,(winLen-winDisp)*fs,1024,fs);
+
         % construct freq-domain feats
         freqFeats = zeros(size(freqBands,1),size(chSpect,2));
         for j = 1:size(freqFeats)
@@ -133,20 +135,20 @@ for pt = 1:32
     C = conv(x(i,:),ones(1,winLen*fs)/(winLen*fs),'valid');
     timeavg_bin = C(1:(winDisp)*fs:end)';
 
-    LL = MovingWinFeats(x(i,:), fs, winLen, winDisp, LLFn);
+    LL = MovingWinFeats(x, fs, winLen, winDisp, featFn)
     
     %F,T,O (Frontal, Temporal, and Occipital assymetry index)
     %kept addition row of zeros so could be formated into grid
     if i == 2  
         asymFeats(:,1:6) = (freqFeats' - F(:,end-6:end-1))./(freqFeats' + F(:,end-6:end-1));
     elseif i == 6
-        asymFeats(:,9:14) = (freqFeats' - F(:,end-6:end-1))./(freqFeats' + F(:,end-6:end-1));
+        asymFeats(:,8:13) = (freqFeats' - F(:,end-6:end-1))./(freqFeats' + F(:,end-6:end-1));
     elseif i == 8
-        asymFeats(:,17:22) = (freqFeats' - F(:,end-6:end-1))./(freqFeats' + F(:,end-6:end-1));
+        asymFeats(:,15:20) = (freqFeats' - F(:,end-6:end-1))./(freqFeats' + F(:,end-6:end-1));
     end
     
     %make feature matrix
-     F = [F freqFeats' timeavg_bin LL];
+    F = [F freqFeats' timeavg_bin];
 
     fprintf('%d',i)   
     end
@@ -175,7 +177,7 @@ for pt = 1:32
 %   figure(1)
 %   errorbar(featAV,featSTD)
 
-    %DO NORMALIZATION
+    
     for i = 1:size(featAV,2)
         F(:,i) = (F(:,i) - featAV(i,pt)) ./featSTD(i,pt);
     end
@@ -240,9 +242,9 @@ end
 
 
     valCor = mean(valCor,2);
-    valCor2 = reshape(valCor,length(ch)+3,size(F,2)/(length(ch)+3));
+    valCor = reshape(valCor,length(ch)+3,size(F,2)/(length(ch)+3));
     figure(1)
-    imagesc(valCor2);
+    imagesc(valCor);
     colorbar;
     title('Valence Correlation')
     xlabel('Features') 
@@ -250,27 +252,27 @@ end
 
     
     arCor = mean(arCor,2);
-    arCor2 = reshape(arCor,length(ch)+3,size(F,2)/(length(ch)+3));
+    arCor = reshape(arCor,length(ch)+3,size(F,2)/(length(ch)+3));
     figure(2)
-    imagesc(arCor2);
+    imagesc(arCor);
     colorbar;
     title('Arousal Correlation')
     xlabel('Features')
     ylabel('1-8 Channels/9-11 Asymmetry Index')    
     
     domCor = mean(domCor,2);
-    domCor2 = reshape(domCor,length(ch)+3,size(F,2)/(length(ch)+3));
+    domCor = reshape(domCor,length(ch)+3,size(F,2)/(length(ch)+3));
     figure(3)
-    imagesc(domCor2);
+    imagesc(domCor);
     colorbar;
     title('Dominance Correlation')
     xlabel('Features')
     ylabel('1-8 Channels/9-11 Asymmetry Index')    
     
     likeCor = mean(likeCor,2);
-    likeCor2 = reshape(likeCor,length(ch)+3,size(F,2)/(length(ch)+3));
+    likeCor = reshape(likeCor,length(ch)+3,size(F,2)/(length(ch)+3));
     figure(4)
-    imagesc(likeCor2);
+    imagesc(likeCor);
     colorbar;
     title('Liking Correlation')
     xlabel('Features')
