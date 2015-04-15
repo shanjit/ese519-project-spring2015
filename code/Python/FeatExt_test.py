@@ -78,7 +78,10 @@ F  = np.empty([windows, totFeats],dtype = float);
 
 for i in range(0,(ch.size)):
     
-    Pxx, freqs, bins, im = specgram(data[ch[i],:], NFFT=NFFT, Fs=Fs, noverlap=(winLen-winDisp)*Fs, cmap=None);
+    Pxx, freqs, bins = specgram(data[ch[i],:], NFFT=NFFT, Fs=Fs, window=mlab.window_hanning, noverlap=(winLen-winDisp)*Fs, cmap=None);
+
+
+
     #init freq features vector to be size of ch x number of windows   
     freqFeats = np.empty([int(freqBands.shape[0]), int(Pxx.shape[1])],dtype = float)
         
@@ -110,11 +113,10 @@ for i in range(0,(ch.size)):
         asymFeats[:,6:12] =  (np.transpose(freqFeats) - F[:,32:38])/(np.transpose(freqFeats) + F[:,32:38]);
     elif i == 7:
         asymFeats[:,12:18] =  (np.transpose(freqFeats) - F[:,48:54])/(np.transpose(freqFeats) + F[:,48:54]);
-        
     
     #make feature matrix
-    tmp = np.append(np.transpose(freqFeats), LL,axis = 1)
-    F[:,(i*ch.size):(i*ch.size)+8] = np.append(tmp, (timeavg_bin),axis = 1)
+    tmp = np.append(np.transpose(freqFeats), (timeavg_bin),axis = 1)
+    F[:,(i*ch.size):(i*ch.size)+8] = np.append(tmp, LL,axis = 1)
 
     print(i)   
     #end loop

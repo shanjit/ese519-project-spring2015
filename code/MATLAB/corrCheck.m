@@ -80,8 +80,9 @@ fRange = [alpha sAlpha beta gamma theta delta];
 
 songLen = 8064;
 
+totF = zeros(1280,82);
 allCorr = cell(32,1);
-for pt = 1:32
+for pt = 1%:32
     
     if(pt < 10)
     curData =  sprintf('s0%dDatav2.csv',pt);
@@ -92,9 +93,6 @@ for pt = 1:32
     end
 
     data = load(curData);
-
-    %file formated super weird.... you have to do this in order to format it
-    %correctly
 
     x = data(ch,:);
 
@@ -121,7 +119,7 @@ for pt = 1:32
     for i = 1:length(ch)
         %%%%%Another Way to do this ^%%%%
         %Spectral Features
-        [chSpect, freqBins] = spectrogram(x(i,:),winLen*fs,(winLen-winDisp)*fs,1024,fs);
+        [chSpect, freqBins, temp, temp2] = spectrogram(x(i,:),winLen*fs,(winLen-winDisp)*fs,1024,fs);
         % construct freq-domain feats
         freqFeats = zeros(size(freqBands,1),size(chSpect,2));
         for j = 1:size(freqFeats)
@@ -153,6 +151,8 @@ for pt = 1:32
     
     F = [F asymFeats];
     
+
+    
     % Create Labels
     lab = load(curLab);
 
@@ -160,11 +160,11 @@ for pt = 1:32
     %normalize scale to be centered around 0;
     vaLab = (vaLab - 5)';
 
-    numInterp = 63;
-    vaLab2(:,1) = reshape(repmat(vaLab(1,:),numInterp,1),length(vaLab(1,:))*numInterp,1);
-    vaLab2(:,2) = reshape(repmat(vaLab(2,:),numInterp,1),length(vaLab(2,:))*numInterp,1);
-    vaLab2(:,3) = reshape(repmat(vaLab(3,:),numInterp,1),length(vaLab(3,:))*numInterp,1);
-    vaLab2(:,4) = reshape(repmat(vaLab(4,:),numInterp,1),length(vaLab(4,:))*numInterp,1);
+%     numInterp = 63;
+%     vaLab2(:,1) = reshape(repmat(vaLab(1,:),numInterp,1),length(vaLab(1,:))*numInterp,1);
+%     vaLab2(:,2) = reshape(repmat(vaLab(2,:),numInterp,1),length(vaLab(2,:))*numInterp,1);
+%     vaLab2(:,3) = reshape(repmat(vaLab(3,:),numInterp,1),length(vaLab(3,:))*numInterp,1);
+%     vaLab2(:,4) = reshape(repmat(vaLab(4,:),numInterp,1),length(vaLab(4,:))*numInterp,1);
 
     %%
     % We actually don't want to normalize because we want to find the
@@ -176,17 +176,33 @@ for pt = 1:32
 %   errorbar(featAV,featSTD)
 
     %DO NORMALIZATION
-    for i = 1:size(featAV,2)
+    for i = 1:size(featAV,1)
         F(:,i) = (F(:,i) - featAV(i,pt)) ./featSTD(i,pt);
     end
+    
 
+    %get the middle 30 seconds from each clip
+    stimF = F(mod(1:size(F,1),63)>=18 & mod(1:size(F,1),63)< 48,:);
+    
+    songF = zeros(40,size(F,2));
+    %average the middle 30 seconds for each song
+    for i = 1:40
+       songF(i,:) = mean(stimF(((i-1)*30)+1:(i*30),:),1); 
+    end
+    
 
+    
     %find feature corr and plot in meaningful way
-    featCor = corr(F,vaLab2(1:size(F,1),:),'type','Spearman');
+%     featCor = corr(F,vaLab2(1:size(F,1),:),'type','Spearman');
+    featCor = corr(songF,vaLab','type','Spearman');
     valCor(:,pt) = featCor(:,1);
     arCor(:,pt) = featCor(:,2);
     domCor(:,pt) = featCor(:,3);
     likeCor(:,pt) = featCor(:,4);
+    
+   %remove the zero vercotrs inserted to make matrix squar 
+    songF(:,sum(songF,1) == 0) = [];
+    totF(((pt-1)*40)+1:(pt*40),:) = songF;
 
 
 %     valCor = featCor(:,1);
@@ -228,11 +244,11 @@ for pt = 1:32
     %
 
     %emot contains lables 1-4 vs scalar values for arousal and valence
-    emot = zeros(size(vaLab2,1),1);
-    emot(vaLab2(:,1) > 0 & vaLab2(:,2) > 0) = 1;
-    emot(vaLab2(:,1) < 0 & vaLab2(:,2) > 0) = 2;
-    emot(vaLab2(:,1) < 0 & vaLab2(:,2) < 0) = 3;
-    emot(vaLab2(:,1) > 0 & vaLab2(:,2) < 0) = 4;
+    emot = zeros(size(vaLab,1),1);
+    emot(vaLab(:,1) > 0 & vaLab(:,2) > 0) = 1;
+    emot(vaLab (:,1) < 0 & vaLab(:,2) > 0) = 2;
+    emot(vaLab(:,1) < 0 & vaLab(:,2) < 0) = 3;
+    emot(vaLab(:,1) > 0 & vaLab(:,2) < 0) = 4;
 
 
 end
@@ -240,7 +256,7 @@ end
 
 
     valCor = mean(valCor,2);
-    valCor2 = reshape(valCor,length(ch)+3,size(F,2)/(length(ch)+3));
+    valCor2 = reshape(valCor,size(F,2)/(length(ch)+3),length(ch)+3)';
     figure(1)
     imagesc(valCor2);
     colorbar;
@@ -250,7 +266,7 @@ end
 
     
     arCor = mean(arCor,2);
-    arCor2 = reshape(arCor,length(ch)+3,size(F,2)/(length(ch)+3));
+    arCor2 = reshape(arCor,size(F,2)/(length(ch)+3),length(ch)+3)';
     figure(2)
     imagesc(arCor2);
     colorbar;
@@ -259,7 +275,7 @@ end
     ylabel('1-8 Channels/9-11 Asymmetry Index')    
     
     domCor = mean(domCor,2);
-    domCor2 = reshape(domCor,length(ch)+3,size(F,2)/(length(ch)+3));
+    domCor2 = reshape(domCor,size(F,2)/(length(ch)+3),length(ch)+3)';
     figure(3)
     imagesc(domCor2);
     colorbar;
@@ -268,7 +284,7 @@ end
     ylabel('1-8 Channels/9-11 Asymmetry Index')    
     
     likeCor = mean(likeCor,2);
-    likeCor2 = reshape(likeCor,length(ch)+3,size(F,2)/(length(ch)+3));
+    likeCor2 = reshape(likeCor,size(F,2)/(length(ch)+3),length(ch)+3)';
     figure(4)
     imagesc(likeCor2);
     colorbar;
