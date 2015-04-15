@@ -21,20 +21,17 @@
 #define RREG_READ 1
 #define RREG_WRITE 0
 
-#include <stdio.h>
 // for printf
+#include <stdio.h>
 
-#include <stdint.h>
 // for uint8_t datatypes
+#include <stdint.h>
 
-#include "definitions.h"
 // for all pin definitions and constants
+#include "definitions.h"
 
-#include "ads1299.h"
 // for the custom ads1299 library
-
-// debugging code
-#define DEBUG 1
+#include "ads1299.h"
 
 // return codes - echo $?
 // -1: library initialization failed
@@ -44,8 +41,10 @@
 int main(int argc, char **argv)
 {
 	// initialize library
-	if(!initLibrary())
-		return -1;
+	// resets the ads1299
+	// sends the SDATAC command to stop continuos read mode
+ 	if(initLibrary())
+        return -1;
 
 	// variable to get/put spi data throughout this file
 	uint8_t data;
@@ -62,17 +61,11 @@ int main(int argc, char **argv)
 		return -2;
 	}
 
-	// print all configuration registers
-/*	rregTransferData(RREG_READ, uint8_t , uint8_t)
+	// print all configuration registers 
+	
 
-	transferData(0x21);
-	transferData(0x00);
-	readData = transferData(0x00);
-	printf("config register is %02x \n", readData);
 
-	bcm2835_delayMicroseconds(1000);
-*/
-    
+
 
 
 	transferComplete();

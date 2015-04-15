@@ -8,11 +8,15 @@
 #include <stdint.h>
 #include "definitions.h"
 #include <stdio.h>
+#include "ads1299.h"
+
 
 // function call to set up all the communication between the raspberry pi bplus and the ADS1299 development board.
 // input: none
 // returns: 0 if everything inorder, else error code
 // note: make sure spi settings are the same
+// note: this function also resets the ads1299
+// note: this function also sends SDATAC to stop continuous read
 int initLibrary()
 {
 	if (!bcm2835_init())
@@ -91,27 +95,44 @@ int initLibrary()
 // input: data to be sent on MOSI line
 // returns: data on MISO line
 // note: prints mosi, miso when DEBUG 1
-uint8_t transferData(uint8_t data)
+uint8_t transferData(uint8_t _data)
 {	
-	if DEBUG
-		printf("MOSI: %02x \n", data);
+	#ifdef __DEBUG__
+		printf("MOSI: %02x \n", _data);
+	#endif
+	
+	uint8_t recv = bcm2835_spi_transfer(_data);
 
-	uint8_t recv = bcm2835_spi_transfer(data);
-
-	if DEBUG
+	#ifdef __DEBUG__
 		printf("MISO: %02x \n", recv);
+	#endif
 
 	return (recv);	
 }
 
-// function to reset the ads1299
+// function to send/receive data on spi for _nregs-1 number of registers
+// input: 
+// output: 
+/*uint8_t transferNData(uint8_t _data, int _nregs)
+{
+	uint8_t *data
+	for(i=0;i<_nregs;i++)
+	{
+
+	}
+
+}*/
+
+// function to transfer commands to the ads1299 - pg 35 of the datasheet
 // input: none
 // return: none
-void reset()
+void transferCmd(uint8_t _cmd)
 {
-
+	// just send _RESET 
+	transferData(_cmd);
 
 }
+
 
 // function to get the device id of ads1299
 // input: none
@@ -145,65 +166,31 @@ uint8_t getDeviceId()
 // function to directly read/write to a register 
 // input: to read/write, register address, register value to write
 // output: the read data in case of read and 0x00 in case of a write
-uint8_t rregTransferData(int readorwrite, uint8_t rregadd, uint8_t rregvalue)
+uint8_t rregTransferData(int _readorwrite, uint8_t _rregadd, uint8_t _rregvalue)
 {
 	uint8_t data;
 
 	// read is 1, write is 0
-	if (readorwrite)
+	if (_readorwrite)
 		data = 0x20;
 	else
-		data = 0x40
+		data = 0x40;
 
-	data = data + rregadd;
+	data = data + _rregadd;
 
 	transferData(data);
 	transferData(0x00);
 
-	if (readorwrite)
+	if (_readorwrite)
 		data = transferData(0x00);
 	else
-		transferData(rregvalue);
+		transferData(_rregvalue);
 
-	return data
+	return data;
 }
 
-
-// function to directly read/write to a register 
-// input: to read/write, register address, register value to write
-// output: the read data in case of read and 0x00 in case of a write
-uint8_t rregTransferData(int readorwrite, uint8_t rregadd, uint8_t rregvalue)
-{
-	uint8_t data;
-
-	// read is 1, write is 0
-	if (readorwrite)
-		data = 0x20;
-	else
-		data = 0x40
-
-	data = data + rregadd;
-
-	transferData(data);
-	transferData(0x00);
-
-	if (readorwrite)
-		data = transferData(0x00);
-	else
-		transferData(rregvalue);
-
-	return data
-}
-
-
-
-
-
-
-
-}
 void transferComplete()
 {
-	bcm2835_spi_end();
+    bcm2835_spi_end();
     bcm2835_close();
 }

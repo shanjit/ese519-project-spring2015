@@ -15,6 +15,6 @@ io.sockets.on('connection', function (socket) {
     setInterval( function() {
         var n=rnd();
         socket.broadcast.emit('stream', {n:n.toString()});
-    }, 1000);
+    }, 200);
 
 });
