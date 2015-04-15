@@ -46,8 +46,15 @@ static uint8_t	 mode = 1;
 static uint32_t    spiSpeeds [2] ;
 static int         spiFds [2] ;
 
-unsigned char dataTransfer (unsigned char *data, int len)
+unsigned char dataTransfer (unsigned char _data)
 {
+
+  unsigned char *data; 
+  int len; 
+
+  data = &_data;
+  len = sizeof(_data);
+
   struct spi_ioc_transfer spi ;
 
   int channel = 0 ;
@@ -61,7 +68,9 @@ unsigned char dataTransfer (unsigned char *data, int len)
   spi.speed_hz      = spiSpeeds [channel] ;
   spi.bits_per_word = spiBPW ;
 
-  return ioctl (spiFds [channel], SPI_IOC_MESSAGE(1), &spi) ;
+  ioctl (spiFds [channel], SPI_IOC_MESSAGE(1), &spi) ;
+
+  return *data;
 }
 
 
@@ -109,29 +118,31 @@ int main()
 	digitalWrite(PIN_CS, LOW);
 	// 1000 milliseconds delay to make sure the chip select is all set
 	delay(1000);
-
+	
+	// to receive the data
 	unsigned char data;
-	data = 0x60;
-	dataTransfer(&data,sizeof(data));
+	
+	dataTransfer(0x60);
 	
 	delayMicroseconds(20*TCLK);
 	
-	data = 0x11;
-	dataTransfer(&data,sizeof(data));
+	dataTransfer(0x11);
 
 	delayMicroseconds(4*TCLK);	
-	
 
-	data = 0x20;
-	dataTransfer(&data,sizeof(data));
-		
-	data = 0x00;
-	dataTransfer(&data,sizeof(data));
-	
-	data = 0x00;
-	dataTransfer(&data,sizeof(data));
+	dataTransfer(0x20);
+	dataTransfer(0x00);
+	data = dataTransfer(0x00);
 
 	printf("Device ID is %02x \n", data);
+	
+	
+	dataTransfer(0x21);
+	dataTransfer(0x00);
+	data = dataTransfer(0x00);
+
+	printf("Config Reg is %02x \n", data);
+	
 	
 	// restart the _RDATAC mode
 	// dataTransfer(0x10);
@@ -141,6 +152,5 @@ int main()
 	
 	
 }
-
 
 
