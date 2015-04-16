@@ -118,8 +118,8 @@ for pt = 1%:32
 
     for i = 1:length(ch)
         %%%%%Another Way to do this ^%%%%
-        %Spectral Features
-        [chSpect, freqBins, temp, temp2] = spectrogram(x(i,:),winLen*fs,(winLen-winDisp)*fs,1024,fs);
+        %Spectral Features   %1024 USED CHANGED FOR CHECK
+        [chSpect, freqBins, temp, temp2] = spectrogram(x(i,:),winLen*fs,(winLen-winDisp)*fs,512,fs);
         % construct freq-domain feats
         freqFeats = zeros(size(freqBands,1),size(chSpect,2));
         for j = 1:size(freqFeats)
@@ -193,7 +193,7 @@ for pt = 1%:32
 
     
     %find feature corr and plot in meaningful way
-%     featCor = corr(F,vaLab2(1:size(F,1),:),'type','Spearman');
+    %featCor = corr(F,vaLab2(1:size(F,1),:),'type','Spearman');
     featCor = corr(songF,vaLab','type','Spearman');
     valCor(:,pt) = featCor(:,1);
     arCor(:,pt) = featCor(:,2);
@@ -201,8 +201,8 @@ for pt = 1%:32
     likeCor(:,pt) = featCor(:,4);
     
    %remove the zero vercotrs inserted to make matrix squar 
-    songF(:,sum(songF,1) == 0) = [];
-    totF(((pt-1)*40)+1:(pt*40),:) = songF;
+    songF(:,isnan(sum(songF,1))) = [];
+    totF(((pt-1)*40)+1:(pt*40),:) = songF(:,1:82);
 
 
 %     valCor = featCor(:,1);
