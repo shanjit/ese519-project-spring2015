@@ -22,6 +22,32 @@
 #define _SDATAC 0x11 // Stop Read Data Continuous mode
 #define _RDATA 0x12 // Read data by command; supports multiple read back
 
+#define ID 0x00
+#define CONFIG1 0x01
+#define CONFIG2 0x02
+#define CONFIG3 0x03
+#define LOFF 0x04
+#define CH1SET 0x05
+#define CH2SET 0x06
+#define CH3SET 0x07
+#define CH4SET 0x08
+#define CH5SET 0x09
+#define CH6SET 0x0A
+#define CH7SET 0x0B
+#define CH8SET 0x0C
+#define BIAS_SENSP 0x0D
+#define BIAS_SENSN 0x0E
+#define LOFF_SENSP 0x0F
+#define LOFF_SENSN 0x10
+#define LOFF_FLIP 0x11
+#define LOFF_STATP 0x12
+#define LOFF_STATN 0x13
+#define GPIO 0x14
+#define MISC1 0x15
+#define MISC2 0x16
+#define CONFIG4 0x17
+
+
 #define _RREG 0x20 // (also = 00100000) is the first opcode that the address must be added to for RREG communication
 #define _WREG 0x40 // 01000000 in binary (Datasheet, pg. 35)
 
@@ -46,7 +72,10 @@ static uint8_t	 mode = 1;
 static uint32_t    spiSpeeds [2] ;
 static int         spiFds [2] ;
 
-unsigned char dataTransfer (unsigned char _data)
+
+	
+
+unsigned char* dataTransfer (unsigned char _data)
 {
 
   unsigned char *data; 
@@ -70,7 +99,7 @@ unsigned char dataTransfer (unsigned char _data)
 
   ioctl (spiFds [channel], SPI_IOC_MESSAGE(1), &spi) ;
 
-  return *data;
+  return data;
 }
 
 
@@ -98,6 +127,39 @@ int spiSetup ()
 }
 
 
+unsigned char getDeviceId()
+{
+	unsigned char *data;
+	dataTransfer(0x20);
+	dataTransfer(0x00);
+	data = dataTransfer(0x00);
+	return *data;
+}
+
+void sendCommand(unsigned char data)
+{
+	dataTransfer(data);
+}
+
+unsigned char readRegister(unsigned char data)
+{
+	unsigned char *_data;
+	data = 0x20 + data;
+	dataTransfer(data);
+	dataTransfer(0x00);
+	_data = dataTransfer(0x00);
+	return *_data;
+}
+
+void writeRegister(unsigned char data, unsigned char data1)
+{
+	data = 0x40 + data;
+	dataTransfer(data);
+	dataTransfer(0x00);
+	dataTransfer(data1);
+	
+}
+
 int main()
 {	
 	int fd = spiSetup();
@@ -122,35 +184,48 @@ int main()
 	// to receive the data
 	unsigned char data;
 	
-	dataTransfer(0x60);
-	
+	// Reset and send SDATAC to stop continuous mode
+	sendCommand(_RESET);
 	delayMicroseconds(20*TCLK);
-	
-	dataTransfer(0x11);
-
+	sendCommand(_SDATAC);
 	delayMicroseconds(4*TCLK);	
 
-	dataTransfer(0x20);
-	dataTransfer(0x00);
-	data = dataTransfer(0x00);
+	// Printing the current register configurations
+	printf("device id: %02x \n", readRegister(0x00));
+	printf("conf1g id: %02x \n", readRegister(0x01));
+	printf("conf2g id: %02x \n", readRegister(0x02));
+	printf("conf3g id: %02x \n", readRegister(0x03));
+	printf("conf4g id: %02x \n", readRegister(0x17));
 
-	printf("Device ID is %02x \n", data);
-	
-	
-	dataTransfer(0x21);
-	dataTransfer(0x00);
-	data = dataTransfer(0x00);
 
-	printf("Config Reg is %02x \n", data);
+	// set reference
+	writeRegister(CONFIG3,0xe0);
+
+	// write certain registers
+	writeRegister(CONFIG1, 0x96);
+	writeRegister(CONFIG2, 0xc0);
+
+	writeRegister(CH1SET, 0x01);
+	writeRegister(CH2SET, 0x01);
+	writeRegister(CH3SET, 0x01);
+	writeRegister(CH4SET, 0x01);
+	writeRegister(CH5SET, 0x01);
+	writeRegister(CH6SET, 0x01);
+	writeRegister(CH7SET, 0x01);
+	writeRegister(CH8SET, 0x01);
+
+	// send command START
+	sendCommand(_START);
+
+	// Start the continuous mode
+	// sendCommand(_RDATA);
 	
-	
-	// restart the _RDATAC mode
-	// dataTransfer(0x10);
-	
+	// now detect a toggle in the signal and do something
 	
 	return 0;
 	
 	
 }
+
 
 
