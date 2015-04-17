@@ -72,11 +72,15 @@ static uint8_t	 mode = 1;
 static uint32_t    spiSpeeds [2] ;
 static int         spiFds [2] ;
 
-
+#define __DEBUG__
 	
 
 unsigned char* dataTransfer (unsigned char _data)
 {
+
+  #ifdef __DEBUG__
+	//printf("MOSI: %02x \n",_data);
+  #endif
 
   unsigned char *data; 
   int len; 
@@ -99,6 +103,9 @@ unsigned char* dataTransfer (unsigned char _data)
 
   ioctl (spiFds [channel], SPI_IOC_MESSAGE(1), &spi) ;
 
+  #ifdef __DEBUG__
+	printf("MISO:%02x \n",*data);
+  #endif
   return data;
 }
 
@@ -109,7 +116,7 @@ int spiSetup ()
 
   int mode    = 1 ;	// Mode is 0, 1, 2 or 3
   int channel = 0 ;	// Channel is 0 or 1
-  int speed = 1000000;
+  int speed = 3000000;
   if ((fd = open (channel == 0 ? spiDev0 : spiDev1, O_RDWR)) < 0)
 	return -1;
   spiSpeeds [channel] = speed ;
@@ -160,6 +167,11 @@ void writeRegister(unsigned char data, unsigned char data1)
 	
 }
 
+void dataReady(void)
+{
+	delayMicroseconds(2); if(digitalRead(PIN_DRDY)) { printf("Got an interrupt on pin 15 \n"); }
+}
+
 int main()
 {	
 	int fd = spiSetup();
@@ -173,6 +185,9 @@ int main()
 	
 	// Setup wiringPi
 	wiringPiSetup ();
+	
+	// Setup interrupt 
+	wiringPiISR (3, INT_EDGE_RISING, &dataReady) ;
 	
 	pinMode(PIN_CS, OUTPUT);
 	pinMode(PIN_DRDY, INPUT);
@@ -214,18 +229,39 @@ int main()
 	writeRegister(CH7SET, 0x01);
 	writeRegister(CH8SET, 0x01);
 
+	fflush(stdout);
 	// send command START
 	sendCommand(_START);
 
-	// Start the continuous mode
-	// sendCommand(_RDATA);
 	
+	// Start the continuous mode
+	sendCommand(_RDATA);
+
+	delay(15);	
 	// now detect a toggle in the signal and do something
+	
+	int i;
+	
+	unsigned double *alldata;
+
+	for(i=0;i<26;i++)
+	{
+		data = sendCommand(0x00);
+	// make alldata from data
+	}		
+
+	sendCommand(_STOP);
+
+
+	//while(1);
+	
+	// close spi?
 	
 	return 0;
 	
 	
 }
+
 
 
 
