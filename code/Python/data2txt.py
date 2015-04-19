@@ -21,15 +21,22 @@ def binary(num):
     return ''.join(bin(ord(c)).replace('0b', '').rjust(8, '0') for c in struct.pack('!f', num))
 
 #init the txt for data in
-filename = "data.txt";
-target = open(filename, 'w')
-target.truncate()
+#filename = "data.txt";
+#target = open(filename, 'w')
+#target.truncate()
 
+#binary file
+target =open('binaryFoo','wb')
+target.truncate();
 
-for i in range(1000): 
-    target.write(binary(data[1,i]))
-    target.write("\n")
-    time.sleep(0.01)
+track = [];
+for i in range(2000):
+    x = struct.pack('f',data[1,i])
+    track.append(struct.pack('f',data[1,i]))
+    target.write(x)
+    
+    #target.write(binary(data[1,i]))
+    #target.write("\n")
     print(i);
     
 print "Fin"

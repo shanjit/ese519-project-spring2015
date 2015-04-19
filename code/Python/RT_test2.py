@@ -28,23 +28,20 @@ plt.ion()
 
 #f, axarr = plt.subplots(8, sharex=True)
 x = [];
-x2 = [];
 t = [];
 for i in range(1000):
     print(i)
     t.append(i)
     x.append(data[ch[1],i])
-    x2.append(data[ch[2],i])
+
     
     
     pw.plot(t, x, clear=True, pen=(1,3))
-    pw.plot(t, x2, clear=True, pen = (2,3))
 
     pg.QtGui.QApplication.processEvents()
     #plt.pause(0.00001)
     cnt=cnt+1
     if(cnt>viewWin*Fs):                            #If you have 50 or more points, delete the first one from the array
         x.pop(0)                       #This allows us to just see the last 50 data points
-        x2.pop(0)
         t.pop(0)
         
