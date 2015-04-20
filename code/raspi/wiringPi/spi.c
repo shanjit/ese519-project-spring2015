@@ -143,9 +143,9 @@ unsigned char getDeviceId()
 	return *data;
 }
 
-void sendCommand(unsigned char data)
+unsigned char sendCommand(unsigned char data)
 {
-	dataTransfer(data);
+	return (*dataTransfer(data));
 }
 
 unsigned char readRegister(unsigned char data)
@@ -220,33 +220,44 @@ int main()
 	writeRegister(CONFIG1, 0x96);
 	writeRegister(CONFIG2, 0xc0);
 
-	writeRegister(CH1SET, 0x01);
-	writeRegister(CH2SET, 0x01);
-	writeRegister(CH3SET, 0x01);
-	writeRegister(CH4SET, 0x01);
-	writeRegister(CH5SET, 0x01);
-	writeRegister(CH6SET, 0x01);
-	writeRegister(CH7SET, 0x01);
-	writeRegister(CH8SET, 0x01);
+	writeRegister(CH1SET, 0x04);
+	writeRegister(CH2SET, 0x04);
+	writeRegister(CH3SET, 0x04);
+	writeRegister(CH4SET, 0x04);
+	writeRegister(CH5SET, 0x04);
+	writeRegister(CH6SET, 0x04);
+	writeRegister(CH7SET, 0x04);
+	writeRegister(CH8SET, 0x04);
 
 	fflush(stdout);
 	// send command START
 	sendCommand(_START);
 
 	
-	// Start the continuous mode
+	// Start the on demand mode
 	sendCommand(_RDATA);
 
+	// Start the continuous mode 	
+	//sendCommand(_RDATAC);
+
+	// delay is in milliseconds
 	delay(15);	
+	
+
+	// microsecond delay
+	// delayMicroseconds(10);
+
+
 	// now detect a toggle in the signal and do something
 	
 	int i;
 	
-	unsigned double *alldata;
+	//unsigned double *alldata;
 
 	for(i=0;i<26;i++)
 	{
-		data = sendCommand(0x00);
+	   data = sendCommand(0x00);
+	
 	// make alldata from data
 	}		
 
