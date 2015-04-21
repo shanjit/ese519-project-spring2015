@@ -44,7 +44,7 @@ import time
 #finally:
 #    f.close()
 
-f = open('binaryFoo','rb')       
+f = open('binaryFoo','rb')
 ################################MOCK REAL TIME DATA###########################
 plt = pg.plot()
 bufferSize = 1000
@@ -71,8 +71,9 @@ def update():
     ch8 = np.zeros(n);
 
     for j in range(0,n):
-        msg = struct.unpack('f',f.read(4));
-        if msg != "":
+        try:
+            msg = struct.unpack('f',f.read(4));
+            #if msg != "":
             ch1t = struct.unpack('f',f.read(4));
             ch2t = struct.unpack('f',f.read(4));
             ch3t = struct.unpack('f',f.read(4));
@@ -81,7 +82,7 @@ def update():
             ch6t = struct.unpack('f',f.read(4));
             ch7t = struct.unpack('f',f.read(4));
             ch8t = struct.unpack('f',f.read(4));
-            
+                
             ch1[j] = ch1t[0]
             ch2[j] = ch2t[0]
             ch3[j] = ch3t[0]
@@ -90,10 +91,10 @@ def update():
             ch6[j] = ch6t[0]
             ch7[j] = ch7t[0]
             ch8[j] = ch8t[0]
-
+    
+        except struct.error:
+            print "no data"
             
-        else:
-            x[j] = (np.random.normal(size=1))
         
     data[i:i+n] = array(ch2); #plot the last 10 values
     curve.setData(data)
