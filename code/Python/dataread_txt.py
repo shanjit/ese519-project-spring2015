@@ -60,20 +60,45 @@ def update():
     n = 10  # update 10 samples per iteration
             #read from the binary file
    
-    x = np.zeros(n);    
+    #x = np.zeros(n);    
+    ch1 = np.zeros(n);
+    ch2 = np.zeros(n);
+    ch3 = np.zeros(n);
+    ch4 = np.zeros(n);
+    ch5 = np.zeros(n);
+    ch6 = np.zeros(n);
+    ch7 = np.zeros(n);
+    ch8 = np.zeros(n);
+
     for j in range(0,n):
-        byte = struct.unpack('f',f.read(4))
-        if byte != "":
-            x[j] = byte[0]
+        msg = struct.unpack('f',f.read(4));
+        if msg != "":
+            ch1t = struct.unpack('f',f.read(4));
+            ch2t = struct.unpack('f',f.read(4));
+            ch3t = struct.unpack('f',f.read(4));
+            ch4t = struct.unpack('f',f.read(4));
+            ch5t = struct.unpack('f',f.read(4));
+            ch6t = struct.unpack('f',f.read(4));
+            ch7t = struct.unpack('f',f.read(4));
+            ch8t = struct.unpack('f',f.read(4));
+            
+            ch1[j] = ch1t[0]
+            ch2[j] = ch2t[0]
+            ch3[j] = ch3t[0]
+            ch4[j] = ch4t[0]
+            ch5[j] = ch5t[0]
+            ch6[j] = ch6t[0]
+            ch7[j] = ch7t[0]
+            ch8[j] = ch8t[0]
+
             
         else:
             x[j] = (np.random.normal(size=1))
         
-    data[i:i+n] = array(x); #plot the last 10 values
+    data[i:i+n] = array(ch2); #plot the last 10 values
     curve.setData(data)
     i = (i+n) % bufferSize
     line.setValue(i)
-    
     #this is test stuff
 #    rand = np.random.normal(size=n)
 #    data[i:i+n] = np.clip(data[i-1] + rand, -50, 50)
@@ -82,8 +107,6 @@ def update():
 timer = pg.QtCore.QTimer()
 timer.timeout.connect(update)
 timer.start(20)
-
-
 
 """
 
