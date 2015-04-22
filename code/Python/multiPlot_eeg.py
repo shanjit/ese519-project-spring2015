@@ -10,7 +10,7 @@ Created on Tue Apr 21 13:50:55 2015
 ## in pyqtgraph. All of the plots may be panned/scaled by dragging with 
 ## the left/right mouse buttons. Right click on any plot to show a context menu.
 
-
+#rom PySide.QtCore import QTime
 from pyqtgraph.Qt import QtGui, QtCore
 import numpy as np
 import pyqtgraph as pg
@@ -18,21 +18,21 @@ import sys
 import struct
 from pylab import *
 import time
-from PySide.QtCore import QTime
+
 
 
 
 
 #QtGui.QApplication.setGraphicsSystem('raster')
-app = QtGui.QApplication([])
+#app = QtGui.QApplication([])
 #mw = QtGui.QMainWindow()
 #mw.resize(800,800)
 
 win = pg.GraphicsWindow(title="Basic plotting examples")
-win.resize(1000,600)
+win.resize(1200,800)
 
 
-f = open('binaryFoo','rb')       
+#f = open('binaryFoo','rb')       
 ################################MOCK REAL TIME DATA###########################
 #init data variables
 bufferSize = 1000
@@ -108,6 +108,9 @@ i = 0
 
 
 def update():
+    f = open('binaryFoo','rb') 
+    #tmp = f.read();      
+
     global data, curve, line, i
     n = 10  # update 10 samples per iteration
             #read from the binary file
@@ -149,15 +152,8 @@ def update():
             ch8[j] = ch8t[0]
     
         except struct.error:
-            #print "Status: No Data"
-            ch1[j] = 0
-            ch2[j] = 0
-            ch3[j] = 0
-            ch4[j] = 0
-            ch5[j] = 0
-            ch6[j] = 0
-            ch7[j] = 0
-            ch8[j] = 0
+            print "Status: No Data"
+
       
     data[i:i+n]  = array(ch1); #plot the last 10 values
     data2[i:i+n] = array(ch2); #plot the last 10 values
@@ -188,10 +184,8 @@ def update():
     line6.setValue(i)
     line7.setValue(i)
     line8.setValue(i)
-    
-    #this is test stuff
-#    rand = np.random.normal(size=n)
-#    data[i:i+n] = np.clip(data[i-1] + rand, -50, 50)
+    f.close();
+##############################################################################
 
     
 timer = pg.QtCore.QTimer()
