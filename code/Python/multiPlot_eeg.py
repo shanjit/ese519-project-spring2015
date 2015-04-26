@@ -48,7 +48,7 @@ data7 = np.zeros(bufferSize)
 data8 = np.zeros(bufferSize)
 ############################INIT ALL CHANNEL PLOTS############################
 #constants to change make it easier
-rng = [-15, 15];  
+rng = [-50, 50];  
 
 
 p1 = win.addPlot(col = 0, row = 0)
