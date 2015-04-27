@@ -10,6 +10,11 @@
 <!-- Create canvas to show the values in realtime -->
 <canvas id="mycanvas" width="1300" height="550"></canvas>
 
+
+<H1 align="center" style="border:1px solid #ccc font-size:30px" >Plot data from the Raspberry Pi</H1>
+
+
+
 <!-- Get data from the socket and show the values in realtime -->
 <script type="text/javascript">
 
@@ -17,7 +22,7 @@
 var line1 = new TimeSeries();
 
 <!-- Create the socket to connect to specific address and port-->
-var socket = io.connect('http://127.0.0.1:8080');
+var socket = io.connect('http://192.168.43.139:8080');
 
 <!-- Stream the data from the socket -->
 socket.on('stream', function (data) {

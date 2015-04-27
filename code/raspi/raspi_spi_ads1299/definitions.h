@@ -1,3 +1,4 @@
+// (1100 + LOFF_STATP + LOFF_STATN + bits[4:7] of the GPIO register)
 // definitions.h
 #ifndef _Definitions_h
 #define _Definitions_h
@@ -6,10 +7,11 @@
 // fclk = 2.048 Mhz, TCLK = 488.2815 nanoseconds	
 #define TCLK 0.4882815 // microseconds
 #define FCLK 2.048
+#define __DEBUG__
 
 
 // Make sure that the following are 
-#define PIN_DRDY RPI_BPLUS_GPIO_J8_22 // Make Pin 22 the DRDY pin
+#define PIN_DRDY RPI_BPLUS_GPIO_J8_15 // Make Pin 22 the DRDY pin
 #define PIN_CS RPI_BPLUS_GPIO_J8_18 // Make Pin 18 the READY pin
 
 //SPI Command Definition Byte Assignments (Datasheet, pg. 35)
