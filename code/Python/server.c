@@ -101,7 +101,7 @@ int main() {
 		
 		int num_samples = 0;
 		char *one_sec = (char *)calloc(4500,sizeof(int));
-		char c = ';';
+//		char c = ';';
                	char new_line = '\n';
 
 		//per second 128 samples

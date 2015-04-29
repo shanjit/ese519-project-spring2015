@@ -1,6 +1,6 @@
 /*
 
-Express application built by shanjitsingh@gmail.com for xlab
+Express application built by shanjitsingh@gmail.com for ESE519 final project
 
 The application is built on nodejs using express. MVC architecture is followed. The requests for a page from the client is routed using ./routes to the corresponding ./view. The ./routes should handle any communication with db/other 3rd party apps to display corresponding content to the client. The ./public folder has all the public image/js/css for the site\
 
