@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Apr 21 19:49:50 2015
-This function will update a .txt file every 10/128 seconds with the next 10 
+This function will update a .txt file every 1 second
 samples simulating a cont. stream of data
 
 
@@ -43,14 +43,8 @@ def update():
     print(i);
     threading.Timer(1, update).start()
 
-    
-
-
-
 ################################MOCK REAL TIME DATA###########################
-#load up the MOCK data
-labels = np.loadtxt('C:\Users\Jared\Dropbox\DEAPdatasets\Preprocessed_csv\s03Labels.csv',delimiter=',')
-#data = np.loadtxt('C:\Users\Jared\Dropbox\DEAPdatasets\Preprocessed_csv\s01Datav2.csv',delimiter=',',usecols=range(1,8064*20),skiprows=0)
+#load up the MOCK data change this location
 data = np.loadtxt('C:\Users\Jared\Dropbox\DEAPdatasets\Preprocessed_csv\s03Datav2.csv',delimiter=',')
 
 ch = array([27, 3, 6, 2, 24, 7, 11, 20]); #channels of interest 4-Front 2-Temp 2-Occ
