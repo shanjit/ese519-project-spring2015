@@ -46,7 +46,7 @@ int main() {
         struct sockaddr_in cliaddr, servaddr;
         socklen_t len = sizeof(cliaddr);
 
-        int sockfd = socket(AF_INET, SOCK_STREAM, 0 );
+        int sockfd = socket(AF_INET, SOCK_DGRAM, 0 );
         if( sockfd < 0 )
         {
                 perror( "creating socket for listenfd" );
@@ -64,20 +64,20 @@ int main() {
                 exit(0);
         }
  	
-	if(listen(sockfd,5)<0) {
-                perror("Listen on socket failed");
-                exit(1);
-        }
+	//if(listen(sockfd,5)<0) {
+        //        perror("Listen on socket failed");
+        //        exit(1);
+        //}
 
 	/*Parameters for readings : 128 samples per second, 
 	This server reads each sample (8 channels) at once and appends 128 samples to a file with 4 second windows*/
 	printf("waiting for client\n");
 
-    	int acceptfd = accept(sockfd, (struct sockaddr *)&cliaddr,&len);
-      	if(acceptfd < 0) {
-      		perror("Accept on socket failed");
-              	exit(0);
-    	}
+    	//int acceptfd = accept(sockfd, (struct sockaddr *)&cliaddr,&len);
+      	//if(acceptfd < 0) {
+      	//	perror("Accept on socket failed");
+        //      	exit(0);
+    	//}
 
 	 #ifdef DEBUG
        		printf("Client: %s, Length:%d\n",buf,strlen(buf));
@@ -111,7 +111,7 @@ int main() {
 
 			char sample[1024];
 			uint32_t channels[8];
-                	int recvlen = recv(acceptfd,channels,sizeof(channels),0);
+                	int recvlen = recvfrom(sockfd,channels,sizeof(channels),0,(struct sockaddr *)&cliaddr,&len);
                 	if(recvlen < 0){
                         	perror("invalid message received");
                         	exit(1);
@@ -119,7 +119,7 @@ int main() {
 			sprintf(sample,"%"SCNd32":%"SCNd32":%"SCNd32":%"SCNd32":%"SCNd32":%"SCNd32":%"SCNd32":%"SCNd32":\0",
 				channels[0],channels[1],channels[2],channels[3],channels[4],channels[5],channels[6],channels[7]);
 			
-			//printf("%s\n",sample);
+			printf("%s\n",sample);
 			//get first sample of the second
 			if(num_samples == 0)
 				strcpy(one_sec,sample);
@@ -154,6 +154,6 @@ int main() {
 	}
 
 	close(sockfd);
-	close(acceptfd);
+	//close(acceptfd);
 	return 0;
 }

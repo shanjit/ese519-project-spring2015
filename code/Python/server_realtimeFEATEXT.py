@@ -33,6 +33,8 @@ import csv
 import sys
 from sklearn.externals import joblib
 from sklearn import svm
+import os
+
 
 ############################################
 # Define all constants here
@@ -56,9 +58,9 @@ winDisp = 1; #Seconds
 bufferSize = 30;  #number of windows to be added together
 
 featAv  = np.loadtxt('F_NormAvPy.csv',delimiter = ',');
-featAv = np.mean(featAv,1);
+featAv = featAv[:,2]
 featStd = np.loadtxt('F_NormStdPy.csv',delimiter = ',');
-featStd = np.mean(featStd,1);
+featStd = featStd[:,2]
 
 
 a = ["QvD6maGRh7c,iZ9vkd7Rp-g,X0eso4ARXzk,TjkQeBG8r_s,7PoJv4N1Too,inavo37kSOg,51ncDQYxsm8,HQzd3BIEabM,eoaTl7IcFs8,piWMN_VNg3Y,AWiccrTB4LM,3Wi1d0FNgdQ,nb1u7wMKywM,uyUOe7HAkpk,DqpFMqfeltE,p_1-VFflpCI,XiLulP9EErc,zwFS69nA-1w,KmcPeuf5aXo,EkHTsc9PU2A,GfDPPEnI1J4,T8YCSJpF4g4,1Uq3nI11w4g,2SpecRRKRoU,AO9dbmJ_2zU,b9E53eUhEmA,sMf2srQ065E,ZpUYjpKg9KY,7usTgw-7XfM,RbACqaCGVk4,I4UM6goudZY,Ypkv0HeUvTc,I5wt302oph0,FgMn2OJmx3w,6VLO9K-lUII,ZxcCN6BgO_k,QNy4iEqQd1Q,rMEp_5FMXRE,gyUWkQj0Q_U,leohcvmf8kM,WlAHZURxRjY,qmVn6b7DdpA,4uzddaCSwpE,z5rRZdiu1UE,K7Ky5R-vxns,VTN31q357Ys,9lp0IWv8QZY,vVy9Lgpg1m8,7_IKcMl_a9A,eoRiVwFP02s,RQa7SvVCdZk,VMpakpQBaxE,-_pTeDz4Zpk,ZiclTJajivc),E2snP7rGP6g,-9tgyQriews,iEe_eraFWWs,mzgjiPBCsss,S0zMHf7J15g,8xg3vE8Ie_E,t1WAMNIunKc,EVYgRPfC9nQ,J5j-ipGFcko,qT6XCvDUUsU,Zx3m4e45bTo,8ftz06I_j-k,dwXzpTU-NCk,sgzeqwhNTDk,N3-_DbEYe7A,GKcQ2RiETss,6fxI1JsXv1A,KzWVWY5QUzg,dxNX_PRqhCQ,6Ejga4kJUts,AJQ4sg3VCsk,IJkMrl4AG8w,rHaKHy8qSpo,Tu1wAP2Baco,7Twnmhe948A"];
@@ -84,6 +86,7 @@ vid_class4 = list(vid_class4);
 
 
 fTot = np.zeros([bufferSize,82])  #fTot size (num of windows x num of features)  
+fv = np.load('f.npy');
 ##########################################
 # Set up spectral graph can comment out
 spect = pg.plot()
@@ -93,7 +96,7 @@ i = 0
 
 ##########################################
 # Functions
-#used to comput the num of windows
+#used to comput te num of windows
 def NumWins(xLen,fs,winLen,winDisp): 
 	return round((xLen-(winLen - winDisp)*fs)/(winDisp*fs));
 
@@ -176,7 +179,7 @@ def getFeats():
 			temp = adc2float(tmpInt[foo], 24, Vref)*10.0**3;
 			tmpInt[foo] = temp;
 
-		print(tmpInt);
+		#print(tmpInt);
 		size(tmp); 
 		tmpInt2 =  np.transpose(np.reshape(tmpInt, (128,8)));        
 		data[:,(j*128):(j*128)+128] = tmpInt2;
@@ -205,14 +208,14 @@ def getFeats():
 		freqs = np.zeros([257,1])     
 		freqs[:,0] = array(range(0,64*4+1))/float(4)
 				
-		Pxx = stft(data[ch,:], winLen*Fs, overlapFac = 0.75, window = np.hanning)
+		Pxx = stft(data[ch,:], winLen*Fs, overlapFac = 0, window = np.hanning)
 		Pxx = np.transpose(Pxx)
-		# print Pxx;    
-		plot = np.append(freqs,abs(Pxx),axis = 1)
-		curve.setData(plot)
+		# print Pxx;
+		if (ch == 6):
+			plot = np.append(freqs,abs(Pxx),axis = 1);
+			curve.setData(plot);
 		
-		
-		freqs = array(range(0,64*4+1))/float(4)     
+		freqs = array(range(0,64*4+1))/float(4);     
 		#init freq features vector to be size of ch x number of windows   
 		freqFeats = np.empty([int(freqBands.shape[0]), windows],dtype = float)
 		#freqFeats2 = np.empty([int(freqBands.shape[0]), windows],dtype = float)
@@ -226,11 +229,11 @@ def getFeats():
 			
 		timeavg_bin = np.empty([windows,1]);    
 		timeavg_bin[0,0] = np.mean(data[ch,:])
+
 		#timeavg_bin = np.empty([windows,1]);    
 		#C = np.convolve(data[ch,:],np.ones(winLen*Fs)/(winLen*Fs),'valid');
 		#timeavg_bin[:,0] = C[0:C.size:(winDisp)*Fs];
-	   
-	   
+
 		#Time Windowed Features
 		LL = np.empty([windows,1]);
 		LL[0,0] = LLFn(data[ch,:]);
@@ -249,7 +252,7 @@ def getFeats():
 		
 		#make feature matrix
 		tmp = np.append(np.transpose(freqFeats), (timeavg_bin),axis = 1)
-		F[:,(ch*7):(ch*7)+8] = np.append(tmp, LL,axis = 1)
+		F[:,(ch*8):(ch*8)+8] = np.append(tmp, LL,axis = 1)
 		#end loop
 
 		
@@ -261,29 +264,36 @@ def getFeats():
 	#print(F);
 	#add current F to circular F buffer to be averaged
 	fTot[i,:] = F;
+	testF = np.mean(fTot, 0);
+	print "cur mean"
+	print testF
 	i = (i+1) % bufferSize;
 	#print(i)   if(yhVa > 0 yhAr >0)  #quadrant one
 	threading.Timer(1, getFeats).start()
 
 def makePred():
 
-	global fTot, plotI, im, modelA, modelV, F
+	global fTot, plotI, im, modelA, modelV, F,testX, j
 
- 	curF = np.mean(fTot, 0); #average fTot
-
+ 	curF = np.mean(fTot, 0);
+    
+     #print "CURRENT VECTOR TO BE PREDICTED ON"
+     #print "CURRENT VECTOR"
+     #print curF
  	#make prediction with curF for V & A
-	yhVa = modelV.predict(curF);
- 	yhAr = modelA.predict(curF);
+	yhVa = modelV.predict(fv[j,:])
+ 	yhAr = modelA.predict(fv[j,:])     
 
- 	print "HEEEEEEEEEEEEEEEEEEEEEEEEEEEEEy"
- 	print F;
+ 	#yhVa = modelV.predict(curF)
+ 	#yhAr = modelA.predict(curF)   
+
  	# yhVa = np.random.random_integers(0,4,1);
  	# yhVa = yhVa[0];
  	# yhAr = np.random.random_integers(0,4,1);
- 	# yhAr = yhAr[0];
+ 	print yhVa,yhAr
 
 	implot = plt.imshow(im)
-	print "hi";
+	j = j +1;
 	plt.ion()
 	plt.show()
 
@@ -293,11 +303,11 @@ def makePred():
 	plotI = plotI+1;
 	y = (yhAr*575)/4.0;
 	x = (yhVa*575)/4.0;
-	# radius is 575
+	print x,y
 	#plt.scatter(x=[790-x, 790+x], y=[705-y, 705+y], c='r', s=40)	
-	plt.scatter(x=[790+x], y=[705+y], c='r', s=40)	
+	plt.scatter(x=[790+x], y=[705-y], c='r', s=40)	
 	plt.draw()
-	plt.scatter(x=[790+x], y=[705+y], c='w', s=40, linewidths='0')	
+	plt.scatter(x=[790+x], y=[705-y], c='w', s=40, linewidths='0')	
 	if plotI==10:
 		plotI=0
 		plt.clf();
@@ -333,13 +343,14 @@ def makePred():
  	songFile.write(song);
  	songFile.close();
 
- 	threading.Timer(30, makePred).start()
+ 	threading.Timer(10, makePred).start()
 
 
 i = 0;
+j = 0;
 plotI = 0;
 im = plt.imread("valarr.png")
-
+#os.system("./runSVR/runSVR_temp.py");
 modelA = joblib.load('./runSVR/Arousal.pkl');
 modelV = joblib.load('./runSVR/Valence.pkl');
 getFeats();

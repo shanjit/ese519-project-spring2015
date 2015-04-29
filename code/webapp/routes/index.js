@@ -18,7 +18,7 @@ router.get('/', function(req, res) {
 router.get('/page2', function(req, res) {
 	
 
-    fs.readFile("./play", 'utf8', function(err, load_data) {
+    fs.readFile("/home/cuil/Dropbox/Upenn/spring2015/ese519/ese519-project-spring2015/code/Python/songSel.txt", 'utf8', function(err, load_data) {
     if(err) {
         console.log(err);
     } else {
