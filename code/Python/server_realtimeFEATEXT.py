@@ -28,6 +28,11 @@ import scipy.io.wavfile as wav
 from numpy.lib import stride_tricks
 import struct
 import pyqtgraph as pg
+import sklearn
+import csv
+import sys
+from sklearn.externals import joblib
+from sklearn import svm
 
 ############################################
 # Define all constants here
@@ -49,12 +54,41 @@ freqBands = array([alpha,
 winLen = 4;  #Seconds
 winDisp = 1; #Seconds
 bufferSize = 30;  #number of windows to be added together
+
+featAv  = np.loadtxt('F_NormAvPy.csv',delimiter = ',');
+featAv = np.mean(featAv,1);
+featStd = np.loadtxt('F_NormStdPy.csv',delimiter = ',');
+featStd = np.mean(featStd,1);
+
+
+a = ["QvD6maGRh7c,iZ9vkd7Rp-g,X0eso4ARXzk,TjkQeBG8r_s,7PoJv4N1Too,inavo37kSOg,51ncDQYxsm8,HQzd3BIEabM,eoaTl7IcFs8,piWMN_VNg3Y,AWiccrTB4LM,3Wi1d0FNgdQ,nb1u7wMKywM,uyUOe7HAkpk,DqpFMqfeltE,p_1-VFflpCI,XiLulP9EErc,zwFS69nA-1w,KmcPeuf5aXo,EkHTsc9PU2A,GfDPPEnI1J4,T8YCSJpF4g4,1Uq3nI11w4g,2SpecRRKRoU,AO9dbmJ_2zU,b9E53eUhEmA,sMf2srQ065E,ZpUYjpKg9KY,7usTgw-7XfM,RbACqaCGVk4,I4UM6goudZY,Ypkv0HeUvTc,I5wt302oph0,FgMn2OJmx3w,6VLO9K-lUII,ZxcCN6BgO_k,QNy4iEqQd1Q,rMEp_5FMXRE,gyUWkQj0Q_U,leohcvmf8kM,WlAHZURxRjY,qmVn6b7DdpA,4uzddaCSwpE,z5rRZdiu1UE,K7Ky5R-vxns,VTN31q357Ys,9lp0IWv8QZY,vVy9Lgpg1m8,7_IKcMl_a9A,eoRiVwFP02s,RQa7SvVCdZk,VMpakpQBaxE,-_pTeDz4Zpk,ZiclTJajivc),E2snP7rGP6g,-9tgyQriews,iEe_eraFWWs,mzgjiPBCsss,S0zMHf7J15g,8xg3vE8Ie_E,t1WAMNIunKc,EVYgRPfC9nQ,J5j-ipGFcko,qT6XCvDUUsU,Zx3m4e45bTo,8ftz06I_j-k,dwXzpTU-NCk,sgzeqwhNTDk,N3-_DbEYe7A,GKcQ2RiETss,6fxI1JsXv1A,KzWVWY5QUzg,dxNX_PRqhCQ,6Ejga4kJUts,AJQ4sg3VCsk,IJkMrl4AG8w,rHaKHy8qSpo,Tu1wAP2Baco,7Twnmhe948A"];
+vid_class1 = csv.reader(a, delimiter=',')
+vid_class1 = list(vid_class1);
+
+a = ["zLDPhPrr5Ig,O0yoxveh7Tg,HdH8NYsDwWk,uuzNohk5cYw,Y9eXzmVzDR8,ScD62dww0Fw,aFn26ntmSsg,TEVodXzNmPM,mZM-d2qD15E"];
+vid_class2 = csv.reader(a, delimiter=',')
+vid_class2 = list(vid_class2);
+
+a = ["wVyggTKDcOE,ghPcYqn0p4Y,zHqZmtAD0lQ,xxvw5vrJxos"];
+vid_class3 = csv.reader(a, delimiter=',')
+vid_class3 = list(vid_class3);
+
+a = ["PT47mdE7qY4,S_j7U4R4aO8,_iEnN9ip1Qk,Z50ZveXL-Ps,cCO-3TzoFJo,-eohHwsplvY,A-BSL5Av89w,Zxe4H0kQpis,ijLKoqN5_EY,cQHJuSZTjkE,hme5jf2Z_ow,WDdleGysNys,EDEEzS7OV2k,G-k19OCq7vE,kxWFyvTg6mc,3orLNBS2ZbU,0mSEhr-K05E,5YObYOHIZkk,15kWlTrpt5k,CoSL_qayMCc,Vg1jyL3cr60"];
+vid_class4 = csv.reader(a, delimiter=',')
+vid_class4 = list(vid_class4);
+
+# access as vid_class1[0][], vid_class2[0][], vid_class3[0][], vid_class4[0][]
+
+
+
+
+
 fTot = np.zeros([bufferSize,82])  #fTot size (num of windows x num of features)  
 ##########################################
 # Set up spectral graph can comment out
-plt = pg.plot()
-curve = plt.plot()
-plt.setRange(xRange=[0, 64], yRange=[0, 2000])
+spect = pg.plot()
+curve = spect.plot()
+spect.setRange(xRange=[0, 64], yRange=[0, 2000])
 i = 0
 
 ##########################################
@@ -72,7 +106,7 @@ def LLFn(x):
 """ short time fourier transform of audio signal """
 def stft(sig, frameSize, overlapFac=0.75, window=np.hanning):
 	win = window(frameSize)
-	print win
+	#print(win);
 	hopSize = int(frameSize - np.floor(overlapFac * frameSize))
 	
 	# zeros at beginning (thus center of 1st window should be for sample nr. 0)
@@ -112,7 +146,7 @@ def getFeats():
 	f = open('input_eeg.txt','rb') 
 	#tmp = f.read();      
 
-	global data, curve, line, i, fTot
+	global data, curve, line, i, fTot, featAv, featStd,F
 	windows = 1;
 	n = 512  # update 10 samples per iteration
 			#read from the binary file
@@ -127,7 +161,7 @@ def getFeats():
 
 	#for line in f:
 	for l in range(0,4):
-		print l;
+		#print(l);
 		line = lines[l];
 		#if j==4:
 		#break;
@@ -135,12 +169,14 @@ def getFeats():
 		tmp[:] = line[1:len(line)-1].split(':');
 		tmp[:] = tmp[0:len(tmp)-1];
 		#print tmp
-		tmpInt = array([np.uint32(e) for e in tmp]);
-		#print tmpInt.shape
+		tmpInt = array([int(e) for e in tmp]);
+		#print tmpInt
 		
 		for foo in range(0,tmpInt.size):
-			tmpInt[foo] = adc2float(tmpInt[foo], 24, Vref)*10**3
-		
+			temp = adc2float(tmpInt[foo], 24, Vref)*10.0**3;
+			tmpInt[foo] = temp;
+
+		print(tmpInt);
 		size(tmp); 
 		tmpInt2 =  np.transpose(np.reshape(tmpInt, (128,8)));        
 		data[:,(j*128):(j*128)+128] = tmpInt2;
@@ -171,7 +207,7 @@ def getFeats():
 				
 		Pxx = stft(data[ch,:], winLen*Fs, overlapFac = 0.75, window = np.hanning)
 		Pxx = np.transpose(Pxx)
-		# print Pxx;	
+		# print Pxx;    
 		plot = np.append(freqs,abs(Pxx),axis = 1)
 		curve.setData(plot)
 		
@@ -218,19 +254,93 @@ def getFeats():
 
 		
 	F[:,-18:] = asymFeats;
-	print F;
+	#normalize
+	for pp in range(0,totFeats):
+		F[:,pp] = (F[:,pp] - featAv[pp])/featStd[pp]
+
+	#print(F);
 	#add current F to circular F buffer to be averaged
 	fTot[i,:] = F;
 	i = (i+1) % bufferSize;
-	#print(i)   
-	threading.Timer(2, getFeats).start()
+	#print(i)   if(yhVa > 0 yhAr >0)  #quadrant one
+	threading.Timer(1, getFeats).start()
+
+def makePred():
+
+	global fTot, plotI, im, modelA, modelV, F
+
+ 	curF = np.mean(fTot, 0); #average fTot
+
+ 	#make prediction with curF for V & A
+	yhVa = modelV.predict(curF);
+ 	yhAr = modelA.predict(curF);
+
+ 	print "HEEEEEEEEEEEEEEEEEEEEEEEEEEEEEy"
+ 	print F;
+ 	# yhVa = np.random.random_integers(0,4,1);
+ 	# yhVa = yhVa[0];
+ 	# yhAr = np.random.random_integers(0,4,1);
+ 	# yhAr = yhAr[0];
+
+	implot = plt.imshow(im)
+	print "hi";
+	plt.ion()
+	plt.show()
 
 	
-"""   
-Load baseline featavg and featstd for normalization 
-HOW????
-	for i in range(0,totFeats):
-		F[:,i] = (F[:,i] - featAv[i])/featStd[i]
-   """     
+
+
+	plotI = plotI+1;
+	y = (yhAr*575)/4.0;
+	x = (yhVa*575)/4.0;
+	# radius is 575
+	#plt.scatter(x=[790-x, 790+x], y=[705-y, 705+y], c='r', s=40)	
+	plt.scatter(x=[790+x], y=[705+y], c='r', s=40)	
+	plt.draw()
+	plt.scatter(x=[790+x], y=[705+y], c='w', s=40, linewidths='0')	
+	if plotI==10:
+		plotI=0
+		plt.clf();
+		im = plt.imread("valarr.png")
+		implot = plt.imshow(im)
+		plt.ion()
+		plt.show()
+
+
+ 	if((yhVa > 0) and (yhAr >0)):  #quadrant one
+ 		songI = np.random.random_integers(0,len(vid_class1[0]),1);
+ 		songI = songI[0]-1;
+ 		song = vid_class1[0][songI];
+
+	elif((yhVa < 0) and (yhAr >0)):  #quadrant two
+		songI = np.random.random_integers(0,len(vid_class2[0]),1);
+ 		songI = songI[0]-1; 		
+ 		song = vid_class2[0][songI];
+
+
+	elif(yhVa < 0 and yhAr <0):  #quadrant two
+		songI = np.random.random_integers(0,len(vid_class3[0]),1);
+ 		songI = songI[0]-1;
+ 		song = vid_class3[0][songI];
+
+	else:
+		songI = np.random.random_integers(0,len(vid_class4[0]),1);
+ 		songI = songI[0]-1;
+ 		song = vid_class4[0][songI];
+
+
+ 	songFile = open('songSel.txt','w');
+ 	songFile.write(song);
+ 	songFile.close();
+
+ 	threading.Timer(30, makePred).start()
+
+
 i = 0;
+plotI = 0;
+im = plt.imread("valarr.png")
+
+modelA = joblib.load('./runSVR/Arousal.pkl');
+modelV = joblib.load('./runSVR/Valence.pkl');
 getFeats();
+makePred();

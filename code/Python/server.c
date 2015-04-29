@@ -91,12 +91,14 @@ int main() {
 	
 	FILE *file = fopen("input_eeg.txt","a");
 	printf("File created\n");
-	while (seconds < 100) {
+	while (1) {
 		
 		if(seconds >= 4) {
-			system("printf '%s' \"$(tail -n +2 input_eeg.txt)\" > input_eeg.txt");
-			FILE *file = fopen("input_eeg.txt","a");
-			printf("\ndeleted one line\n");
+			//system("printf '%s' \"$(tail -n +2 input_eeg.txt)\" > input_eeg.txt");
+			//FILE *file = fopen("input_eeg.txt","a");
+			//printf("\ndeleted one line\n");
+			if (seconds == 4)
+				fclose(file);
 		}
 		
 		int num_samples = 0;
@@ -117,7 +119,7 @@ int main() {
 			sprintf(sample,"%"SCNd32":%"SCNd32":%"SCNd32":%"SCNd32":%"SCNd32":%"SCNd32":%"SCNd32":%"SCNd32":\0",
 				channels[0],channels[1],channels[2],channels[3],channels[4],channels[5],channels[6],channels[7]);
 			
-			//printf("%s",sample);
+			//printf("%s\n",sample);
 			//get first sample of the second
 			if(num_samples == 0)
 				strcpy(one_sec,sample);
@@ -132,16 +134,23 @@ int main() {
 
 			*/
 			num_samples++;
-			printf("\nSample: %d\n",num_samples);
+			//printf("\nSample: %d\n",num_samples);
 		}
 		strcat(one_sec,&new_line);
-		fputs(one_sec,file);
+		if(seconds >=4 ) {
+			system("printf '%s' \"$(tail -n +2 input_eeg.txt)\" > input_eeg.txt");
+			FILE *file1 = fopen("input_eeg.txt","a");
+			fputs(one_sec,file1);
+			fclose(file1);
+		}
+		else
+			fputs(one_sec,file);
 		printf("\nGot 128 samples more!\n");
 		seconds ++;
 		free(one_sec);
-		if (seconds >= 4){
-			fclose(file);
-		}
+		//if (seconds >= 4){
+		//	fclose(file);
+		//}
 	}
 
 	close(sockfd);
