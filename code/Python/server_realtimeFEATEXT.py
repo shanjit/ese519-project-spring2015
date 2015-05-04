@@ -281,8 +281,8 @@ def makePred():
      #print "CURRENT VECTOR"
      #print curF
  	#make prediction with curF for V & A
-	yhVa = modelV.predict(fv[j,:])
- 	yhAr = modelA.predict(fv[j,:])     
+	yhVa = modelV.predict(curF)
+ 	yhAr = modelA.predict(curF)     
 
  	#yhVa = modelV.predict(curF)
  	#yhAr = modelA.predict(curF)   
