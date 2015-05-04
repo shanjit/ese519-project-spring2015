@@ -4,6 +4,10 @@ Project Infographic
 -------------------
 ![ScreenShot](https://raw.githubusercontent.com/shanjit/ese519-project-spring2015/master/doc/infographic.jpg )
 
+Final Mood Prediction
+---------------------
+![ScreenShot](https://raw.githubusercontent.com/shanjit/ese519-project-spring2015/master/doc/moodprediction.jpg)
+
 Feature Selection
 -----------------
 
