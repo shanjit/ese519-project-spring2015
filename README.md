@@ -10,7 +10,9 @@ Final Mood Prediction
 
 Feature Selection
 -----------------
+![ScreenShot](https://raw.githubusercontent.com/shanjit/ese519-project-spring2015/master/doc/feats1.png)
 
+![ScreenShot](https://raw.githubusercontent.com/shanjit/ese519-project-spring2015/master/doc/feats2.png)
 
 Contributors
 ------------
