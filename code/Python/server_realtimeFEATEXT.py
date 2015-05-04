@@ -83,8 +83,6 @@ vid_class4 = list(vid_class4);
 
 
 
-
-
 fTot = np.zeros([bufferSize,82])  #fTot size (num of windows x num of features)  
 fv = np.load('f.npy');
 ##########################################
