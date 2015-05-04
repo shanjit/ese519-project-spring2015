@@ -1,7 +1,6 @@
 #Data for Emotion Classification
 
-Source: DEAPData
-----------------
+Source: DEAPData (http://www.eecs.qmul.ac.uk/mmv/datasets/deap/)
 
 Total no. of Participants: 32
 
