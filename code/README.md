@@ -10,3 +10,4 @@
 	
 - webapp : Web application for showing the presentation and youtube videos to the user.
 	- run ./start to run the server on the localhost at port 9000
+	- platform: nodejs (javascript)
